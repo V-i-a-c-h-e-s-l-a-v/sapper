@@ -2,6 +2,19 @@ import tkinter as tk
 from typing import List
 
 
+class MyButton(tk.Button):
+    def __init__(self, master, x, y, *args, **kwargs):
+        super(MyButton, self).__init__(
+            master, width=3, font="Calibri 15 bold", *args, **kwargs
+        )
+        self.x = x
+        self.y = y
+        self.is_mine = False
+
+    def __repr__(self):
+        return f"MyButton {self.x} {self.y}"
+
+
 class Sapper:
     """
     There is all logic of Sapper game here
@@ -9,15 +22,15 @@ class Sapper:
 
     WINDOW = tk.Tk()
 
-    ROW: int = 5  # Default value.
-    COLUMN: int = 3  # Default value.
+    ROW: int = 10  # Default value.
+    COLUMN: int = 7  # Default value.
 
     def __init__(self):
         self.buttons: List[List[tk.Button]] = []  # The list of cells on the minefield.
         for i in range(Sapper.ROW):
             temp = []
             for j in range(Sapper.COLUMN):
-                btn = tk.Button(Sapper.WINDOW, width=3, font="Calibri 15 bold")
+                btn = MyButton(Sapper.WINDOW, x=i, y=j)
                 temp.append(btn)
             self.buttons.append(temp)
 
