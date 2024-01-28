@@ -1,2 +1,2 @@
 # sapper
-This project has set up for studying purpose only.
+This project is set up for studying purposes only.

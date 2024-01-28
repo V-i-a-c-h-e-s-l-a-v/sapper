@@ -1,28 +1,51 @@
 import tkinter as tk
 from typing import List
 
-window = tk.Tk()
 
-# The grid size of the battlefield.
-row: int = 5  # Default value.
-column: int = 3  # Default value.
+class Sapper:
+    """
+    There is all logic of Sapper game here
+    """
 
-buttons: List[List[tk.Button]] = []  # The list of cells on the battlefield.
-for i in range(row):
-    temp = []
-    for j in range(column):
-        btn = tk.Button(window, width=3, font="Calibri 15 bold")
-        temp.append(btn)
-    buttons.append(temp)
+    WINDOW = tk.Tk()
 
-for row_btn in buttons:
-    print(row_btn)
+    ROW: int = 5  # Default value.
+    COLUMN: int = 3  # Default value.
 
-for i in range(row):
-    for j in range(column):
-        btn = buttons[i][j]
-        btn.grid(row=i, column=j)
+    def __init__(self):
+        self.buttons: List[List[tk.Button]] = []  # The list of cells on the minefield.
+        for i in range(Sapper.ROW):
+            temp = []
+            for j in range(Sapper.COLUMN):
+                btn = tk.Button(Sapper.WINDOW, width=3, font="Calibri 15 bold")
+                temp.append(btn)
+            self.buttons.append(temp)
+
+    def create_widgets(self):
+        """
+        Creates the cells of the minefield using coordinates
+
+        :return: Nothing
+        """
+        for i in range(Sapper.ROW):
+            for j in range(Sapper.COLUMN):
+                btn = self.buttons[i][j]
+                btn.grid(row=i, column=j)
+
+    def start(self):
+        """
+        Encapsulate methods: 'create_widgets', 'print_buttons' and 'Sapper.WINDOW.mainloop()'
+        :return: Nothing
+        """
+        self.create_widgets()
+        self.print_buttons()
+        Sapper.WINDOW.mainloop()
+
+    def print_buttons(self):
+        for btn in self.buttons:
+            print(btn)
 
 
 if __name__ == "__main__":
-    window.mainloop()
+    game = Sapper()
+    game.start()
