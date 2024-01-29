@@ -54,11 +54,13 @@ class Sapper:
 
     Methods:
         - __init__: Creates the instance of class 'Sapper',
+        - click: Handling the buttons clicks,
         - create_widgets: Create the cells of the minefield using their coordinates,
         - start: Encapsulate methods: 'create_widgets', 'print_buttons' and 'Sapper.WINDOW.mainloop()'
         - print_buttons: Print all buttons (cells) to the console to check their attributes,
         - mines_setting:  Setting mines in the minefield,
         - get_mines_location: Generating random coordinates for the mines location on the minefield.
+
     """
 
     WINDOW = tk.Tk()
@@ -78,9 +80,30 @@ class Sapper:
             temp: List[MyButton] = []  # Collecting rows of the cells.
             for j in range(Sapper.COLUMN):
                 btn = MyButton(Sapper.WINDOW, x=i, y=j, number=cnt)
+                btn.config(
+                    command=lambda button=btn: self.click(button)
+                )  # The command can't be executed directly in 'btn' directly because the button object doesn't yet
+                # exist.
                 temp.append(btn)
                 cnt += 1
             self.buttons.append(temp)
+
+    def click(self, clicked_button: MyButton):
+        """
+        Handling the buttons clicks.
+        :param clicked_button: The instance of class 'MyButton'
+        :return:
+        """
+        if clicked_button.is_mine:
+            # Check if the cell has a mine and changing the button configuration based on the result.
+            clicked_button.config(
+                text="*", background="red", disabledforeground="black"
+            )
+        else:
+            clicked_button.config(
+                text=clicked_button.number, disabledforeground="black"
+            )
+        clicked_button.config(state="disabled")
 
     def create_widgets(self):
         """
