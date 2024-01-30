@@ -3,6 +3,16 @@ import tkinter as tk
 from typing import List, Type
 from random import shuffle
 
+colors = {
+    1: "#42e3f5",
+    2: "#42a4f5",
+    3: "#4275f5",
+    5: "#7842f5",
+    6: "#a742f5",
+    7: "#42f551",
+    8: "#f5a442",
+}  # Setting colors for each value of the mine counter.
+
 
 class MyButton(tk.Button):
     """
@@ -37,7 +47,7 @@ class MyButton(tk.Button):
         self.y = y
         self.number = number
         self.is_mine = False
-        self.mine_cntr = 0
+        self.mine_cnt = 0
 
     def __repr__(self):
         return f"MyButton {self.x} {self.y} {self.number} {self.is_mine}"
@@ -106,10 +116,18 @@ class Sapper:
                 text="*", background="red", disabledforeground="black"
             )
         else:
-            clicked_button.config(
-                text=clicked_button.number, disabledforeground="black"
-            )
+            # Assigning the font color of the cell value according to the number of mines.
+            color = colors.get(clicked_button.mine_cnt, "black")
+            if clicked_button.mine_cnt:
+                clicked_button.config(
+                    text=clicked_button.mine_cnt, disabledforeground=color
+                )
+            else:
+                # If the number of mines is 0 the cell switches off.
+                clicked_button.config(text="", disabledforeground=color)
+        # After clicking the button provides a new button visualization.
         clicked_button.config(state="disabled")
+        clicked_button.config(relief=tk.SUNKEN)
 
     def create_widgets(self):
         """
@@ -134,8 +152,12 @@ class Sapper:
                 btn = self.buttons[i][j]
                 if btn.is_mine:
                     btn.config(text="*", background="red", disabledforeground="black")
-                else:
-                    btn.config(text=btn.mine_cntr, disabledforeground="black")
+
+                elif btn.mine_cnt in colors:
+                    color = colors.get(
+                        btn.mine_cnt, "black"
+                    )  # Assigning the font color of the cell value according to the number of mines.
+                    btn.config(text=btn.mine_cnt, fg=color)
 
     def start(self):
         """
@@ -146,7 +168,7 @@ class Sapper:
         self.mines_setting()
         self.cnt_mines()
         self.print_buttons()
-        self.open_all_buttons()  # Opening the values of all buttons for debugging purposes.
+        # self.open_all_buttons()  # Opening the values of all buttons for debugging purposes.
         Sapper.WINDOW.mainloop()
 
     def print_buttons(self):
@@ -154,8 +176,15 @@ class Sapper:
         Print all buttons (cells) to the console to check their attributes.
         :return: None
         """
-        for btn in self.buttons:
-            print(btn)
+
+        for i in range(1, Sapper.ROW + 1):
+            for j in range(1, Sapper.COLUMN + 1):
+                btn = self.buttons[i][j]
+                if btn.is_mine:
+                    print("M", end="")
+                else:
+                    print(btn.mine_cnt, end="")
+            print()
 
     def mines_setting(self):
         """
@@ -192,7 +221,7 @@ class Sapper:
                             ngbr_cells = self.buttons[i + row_dx][j + col_dx]
                             if ngbr_cells.is_mine:
                                 mine_cntr += 1
-                btn.mine_cntr = mine_cntr
+                btn.mine_cnt = mine_cntr
 
     @staticmethod
     def get_mines_location():
