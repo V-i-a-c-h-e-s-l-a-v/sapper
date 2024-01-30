@@ -37,6 +37,7 @@ class MyButton(tk.Button):
         self.y = y
         self.number = number
         self.is_mine = False
+        self.mine_cntr = 0
 
     def __repr__(self):
         return f"MyButton {self.x} {self.y} {self.number} {self.is_mine}"
@@ -66,7 +67,7 @@ class Sapper:
     WINDOW = tk.Tk()
     ROW: int = 5  # Default value.
     COLUMN: int = 5  # Default value.
-    MINE: int = 15  # Default value.
+    MINE: int = 5  # Default value.
 
     def __init__(self):
         """
@@ -114,19 +115,18 @@ class Sapper:
         """
         Create the cells of the minefield using their coordinates.
 
-        :return: Nothing
+        :return: None
         """
-        for i in range(Sapper.ROW + 2):
-            # Two extra rows have been added to simplify calculation of the number of cells.
-            for j in range(Sapper.COLUMN + 2):
-                # Two extra columns have been added to simplify calculation of the number of cells.
+        for i in range(1, Sapper.ROW + 1):
+            for j in range(1, Sapper.COLUMN + 1):
+                # Determining the minefield area.
                 button = self.buttons[i][j]
                 button.grid(row=i, column=j)
 
     def open_all_buttons(self):
         """
         Opening the values of all buttons for debugging purposes
-        :return: Nothing
+        :return: None
         """
 
         for i in range(Sapper.ROW + 2):
@@ -135,15 +135,16 @@ class Sapper:
                 if btn.is_mine:
                     btn.config(text="*", background="red", disabledforeground="black")
                 else:
-                    btn.config(text=btn.number, disabledforeground="black")
+                    btn.config(text=btn.mine_cntr, disabledforeground="black")
 
     def start(self):
         """
         Encapsulate methods: 'create_widgets', 'print_buttons' and 'Sapper.WINDOW.mainloop()'
-        :return: Nothing
+        :return: None
         """
         self.create_widgets()
         self.mines_setting()
+        self.cnt_mines()
         self.print_buttons()
         self.open_all_buttons()  # Opening the values of all buttons for debugging purposes.
         Sapper.WINDOW.mainloop()
@@ -151,7 +152,7 @@ class Sapper:
     def print_buttons(self):
         """
         Print all buttons (cells) to the console to check their attributes.
-        :return: Nothing
+        :return: None
         """
         for btn in self.buttons:
             print(btn)
@@ -159,7 +160,7 @@ class Sapper:
     def mines_setting(self):
         """
         Setting mines in the minefield.
-        :return: Nothing
+        :return: None
         """
         index_mines = self.get_mines_location()
         print(index_mines)  # To check the position of mines only.
@@ -175,11 +176,29 @@ class Sapper:
                     # default.
                 cnt += 1
 
+    def cnt_mines(self):
+        """
+        Counting the mines located next to the cell.
+        :return: None
+        """
+        for i in range(1, Sapper.ROW + 1):
+            for j in range(1, Sapper.COLUMN + 1):
+                btn = self.buttons[i][j]
+                mine_cntr = 0
+                if not btn.is_mine:
+                    for row_dx in [-1, 0, 1]:
+                        for col_dx in [-1, 0, 1]:
+                            # Pascal triangle algorithm.
+                            ngbr_cells = self.buttons[i + row_dx][j + col_dx]
+                            if ngbr_cells.is_mine:
+                                mine_cntr += 1
+                btn.mine_cntr = mine_cntr
+
     @staticmethod
     def get_mines_location():
         """
         Generating random coordinates for the mines location on the minefield.
-        :return: Nothing
+        :return: None
         """
         indexes = list(
             range(1, (Sapper.ROW * Sapper.COLUMN + 1))
