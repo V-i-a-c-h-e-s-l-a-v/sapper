@@ -20,7 +20,7 @@ class MyButton(tk.Button):
         - __repr__: Defines the string representation of class 'MyButton',
     """
 
-    def __init__(self, master, x: int, y: int, number: int, *args, **kwargs):
+    def __init__(self, master, x: int, y: int, number=0, *args, **kwargs):
         """
         Creates the instance of class 'MyButton'
 
@@ -64,9 +64,9 @@ class Sapper:
     """
 
     WINDOW = tk.Tk()
-    ROW: int = 10  # Default value.
-    COLUMN: int = 7  # Default value.
-    MINE: int = 3  # Default value.
+    ROW: int = 5  # Default value.
+    COLUMN: int = 5  # Default value.
+    MINE: int = 15  # Default value.
 
     def __init__(self):
         """
@@ -75,17 +75,22 @@ class Sapper:
         self.buttons: List[
             List[MyButton]
         ] = []  # The list of the cells on the minefield.
-        cnt = 1  # The button number is the coordinate of its location as well.
-        for i in range(Sapper.ROW):
+
+        for i in range(
+            Sapper.ROW + 2
+        ):  # Two extra rows have been added to simplify calculation of the number of cells.
             temp: List[MyButton] = []  # Collecting rows of the cells.
-            for j in range(Sapper.COLUMN):
-                btn = MyButton(Sapper.WINDOW, x=i, y=j, number=cnt)
+            for j in range(
+                Sapper.COLUMN + 2
+            ):  # Two extra columns have been added to simplify calculation of the number of cells.
+                btn = MyButton(
+                    Sapper.WINDOW, x=i, y=j
+                )  # The number zero is the default button number.
                 btn.config(
                     command=lambda button=btn: self.click(button)
-                )  # The command can't be executed directly in 'btn' directly because the button object doesn't yet
+                )  # The command can't be executed directly in 'btn' because the button object doesn't yet
                 # exist.
                 temp.append(btn)
-                cnt += 1
             self.buttons.append(temp)
 
     def click(self, clicked_button: MyButton):
@@ -111,10 +116,26 @@ class Sapper:
 
         :return: Nothing
         """
-        for i in range(Sapper.ROW):
-            for j in range(Sapper.COLUMN):
+        for i in range(Sapper.ROW + 2):
+            # Two extra rows have been added to simplify calculation of the number of cells.
+            for j in range(Sapper.COLUMN + 2):
+                # Two extra columns have been added to simplify calculation of the number of cells.
                 button = self.buttons[i][j]
                 button.grid(row=i, column=j)
+
+    def open_all_buttons(self):
+        """
+        Opening the values of all buttons for debugging purposes
+        :return: Nothing
+        """
+
+        for i in range(Sapper.ROW + 2):
+            for j in range(Sapper.COLUMN + 2):
+                btn = self.buttons[i][j]
+                if btn.is_mine:
+                    btn.config(text="*", background="red", disabledforeground="black")
+                else:
+                    btn.config(text=btn.number, disabledforeground="black")
 
     def start(self):
         """
@@ -124,6 +145,7 @@ class Sapper:
         self.create_widgets()
         self.mines_setting()
         self.print_buttons()
+        self.open_all_buttons()  # Opening the values of all buttons for debugging purposes.
         Sapper.WINDOW.mainloop()
 
     def print_buttons(self):
@@ -141,11 +163,17 @@ class Sapper:
         """
         index_mines = self.get_mines_location()
         print(index_mines)  # To check the position of mines only.
-        for row_btn in self.buttons:
-            for btn in row_btn:
+        cnt = 1  # The button number is the coordinate of its location as well.
+        for i in range(1, Sapper.ROW + 1):
+            # Determining the rows of the minefield.
+            for j in range(1, Sapper.COLUMN + 1):
+                # Determining the column of the minefield.
+                btn = self.buttons[i][j]
+                btn.number = cnt
                 if btn.number in index_mines:
                     btn.is_mine = True  # If the cell value is True, the mine is there; otherwise, it is False by
                     # default.
+                cnt += 1
 
     @staticmethod
     def get_mines_location():
@@ -153,7 +181,9 @@ class Sapper:
         Generating random coordinates for the mines location on the minefield.
         :return: Nothing
         """
-        indexes = list(range(1, (Sapper.ROW * Sapper.COLUMN + 1)))
+        indexes = list(
+            range(1, (Sapper.ROW * Sapper.COLUMN + 1))
+        )  # Determining the minefield area.
         shuffle(indexes)
         return indexes[
             : Sapper.MINE
