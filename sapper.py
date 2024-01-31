@@ -2,6 +2,7 @@ import random
 import tkinter as tk
 from typing import List, Type
 from random import shuffle
+from tkinter.messagebox import showinfo
 
 colors = {
     1: "#42e3f5",
@@ -78,7 +79,9 @@ class Sapper:
     WINDOW = tk.Tk()
     ROW: int = 10  # Default value.
     COLUMN: int = 10  # Default value.
-    MINE: int = 5  # Default value.
+    MINE: int = 25  # Default value.
+    IS_GAME_OVER = False
+    IS_FIRST_CLICK = True
 
     def __init__(self):
         """
@@ -111,12 +114,24 @@ class Sapper:
         :param clicked_button: The instance of class 'MyButton'
         :return:
         """
+        if Sapper.IS_FIRST_CLICK:
+            self.mines_setting(clicked_button.number)
+            self.cnt_mines()
+            self.print_buttons()
         if clicked_button.is_mine:
             # Check if the cell has a mine and changing the button configuration based on the result.
             clicked_button.config(
                 text="*", background="red", disabledforeground="black"
             )
             clicked_button.is_open = True
+            Sapper.IS_GAME_OVER = True
+            showinfo("Game over", "GAME OVER!")
+            for i in range(1, Sapper.ROW + 1):
+                for j in range(1, Sapper.COLUMN + 1):
+                    btn = self.buttons[i][j]
+                    if btn.is_mine:
+                        btn["text"] = "*"
+
         else:
             # Assigning the font color of the cell value according to the number of mines.
             color = colors.get(clicked_button.mine_cnt, "black")
@@ -163,8 +178,8 @@ class Sapper:
                 x, y = cur_btn.x, cur_btn.y
                 for dx in [-1, 0, 1]:
                     for dy in [-1, 0, 1]:
-                        if not abs(dx - dy) == 1:
-                            continue
+                        # if not abs(dx - dy) == 1:
+                        #     continue
                         next_btn = self.buttons[x + dx][y + dy]
                         if (
                             not next_btn.is_open
@@ -180,11 +195,14 @@ class Sapper:
 
         :return: None
         """
+        count = 1
         for i in range(1, Sapper.ROW + 1):
             for j in range(1, Sapper.COLUMN + 1):
                 # Determining the minefield area.
                 button = self.buttons[i][j]
+                button.number = count
                 button.grid(row=i, column=j)
+                count += 1
 
     def open_all_buttons(self):
         """
@@ -210,9 +228,7 @@ class Sapper:
         :return: None
         """
         self.create_widgets()
-        self.mines_setting()
-        self.cnt_mines()
-        self.print_buttons()
+
         # self.open_all_buttons()  # Opening the values of all buttons for debugging purposes.
         Sapper.WINDOW.mainloop()
 
@@ -231,24 +247,23 @@ class Sapper:
                     print(btn.mine_cnt, end="")
             print()
 
-    def mines_setting(self):
+    def mines_setting(self, number):
         """
         Setting mines in the minefield.
         :return: None
         """
-        index_mines = self.get_mines_location()
+        index_mines = self.get_mines_location(number)
         print(index_mines)  # To check the position of mines only.
-        cnt = 1  # The button number is the coordinate of its location as well.
+
         for i in range(1, Sapper.ROW + 1):
             # Determining the rows of the minefield.
             for j in range(1, Sapper.COLUMN + 1):
                 # Determining the column of the minefield.
                 btn = self.buttons[i][j]
-                btn.number = cnt
+
                 if btn.number in index_mines:
                     btn.is_mine = True  # If the cell value is True, the mine is there; otherwise, it is False by
                     # default.
-                cnt += 1
 
     def cnt_mines(self):
         """
@@ -269,7 +284,7 @@ class Sapper:
                 btn.mine_cnt = mine_cntr
 
     @staticmethod
-    def get_mines_location():
+    def get_mines_location(exclude_number: int):
         """
         Generating random coordinates for the mines location on the minefield.
         :return: None
@@ -277,6 +292,8 @@ class Sapper:
         indexes = list(
             range(1, (Sapper.ROW * Sapper.COLUMN + 1))
         )  # Determining the minefield area.
+        print(f"Exclude cell {exclude_number}")
+        indexes.remove(exclude_number)
         shuffle(indexes)
         return indexes[
             : Sapper.MINE
