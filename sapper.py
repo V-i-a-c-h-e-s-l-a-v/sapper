@@ -105,8 +105,19 @@ class Sapper:
                     command=lambda button=btn: self.click(button)
                 )  # The command can't be executed directly in 'btn' because the button object doesn't yet
                 # exist.
+                btn.bind("<Button-3>", self.right_click)
                 temp.append(btn)
             self.buttons.append(temp)
+
+    def right_click(self, event):
+        cur_btn = event.widget
+        if cur_btn["state"] == "normal":
+            cur_btn["state"] = "disable"
+            cur_btn["text"] = "🚩"
+            cur_btn["disabledforeground"] = "red"
+        elif cur_btn["text"] == "🚩":
+            cur_btn["text"] = ""
+            cur_btn["state"] = "normal"
 
     def click(self, clicked_button: MyButton):
         """
@@ -114,10 +125,13 @@ class Sapper:
         :param clicked_button: The instance of class 'MyButton'
         :return:
         """
+        if Sapper.IS_GAME_OVER:
+            return
         if Sapper.IS_FIRST_CLICK:
             self.mines_setting(clicked_button.number)
             self.cnt_mines()
             self.print_buttons()
+            Sapper.IS_FIRST_CLICK = False
         if clicked_button.is_mine:
             # Check if the cell has a mine and changing the button configuration based on the result.
             clicked_button.config(
@@ -189,20 +203,77 @@ class Sapper:
                         ):
                             queue.append(next_btn)
 
+    def reload(self):
+        [child.destroy() for child in self.WINDOW.winfo_children()]
+        self.__init__()
+        self.create_widgets()
+        Sapper.IS_FIRST_CLICK = True
+
+    def create_settings_win(self):
+        win_settings = tk.Toplevel(self.WINDOW)
+        win_settings.wm_title("Settings")
+        tk.Label(win_settings, text="Number of rows").grid(row=0, column=0)
+        row_entry = tk.Entry(win_settings)
+        row_entry.insert(0, str(Sapper.ROW))
+        row_entry.grid(row=0, column=1, padx=20, pady=20)
+        tk.Label(win_settings, text="Number of columns").grid(row=1, column=0)
+        column_entry = tk.Entry(win_settings)
+        column_entry.insert(0, str(Sapper.COLUMN))
+        column_entry.grid(row=1, column=1, padx=20, pady=20)
+        tk.Label(win_settings, text="Number of mines").grid(row=2, column=0)
+        mines_entry = tk.Entry(win_settings)
+        mines_entry.insert(0, str(Sapper.MINE))
+        mines_entry.grid(row=2, column=1, padx=20, pady=20)
+        save_btn = tk.Button(
+            win_settings,
+            text="Apply",
+            command=lambda: self.change_settings(row_entry, column_entry, mines_entry),
+        )
+        save_btn.grid(row=3, column=0, columnspan=2)
+
+    def change_settings(self, row: tk.Entry, column: tk.Entry, mines: tk.Entry):
+        try:
+            Sapper.ROW = int(row.get())
+        except ValueError:
+            showinfo("ValueError", "Digits only")
+        try:
+            Sapper.COLUMN = int(row.get())
+        except ValueError:
+            showinfo("ValueError", "Digits only")
+        try:
+            Sapper.MINE = int(row.get())
+        except ValueError:
+            showinfo("ValueError", "Digits only")
+        self.reload()
+
     def create_widgets(self):
         """
         Create the cells of the minefield using their coordinates.
 
         :return: None
         """
+        menubar = tk.Menu(self.WINDOW)
+        self.WINDOW.config(menu=menubar)
+        settings_menu = tk.Menu(menubar, tearoff=0)
+        settings_menu.add_command(label="Game", command=self.reload)
+        settings_menu.add_command(label="Settings", command=self.create_settings_win)
+        settings_menu.add_command(label="Exit", command=self.WINDOW.destroy)
+        menubar.add_cascade(label="File", menu=settings_menu)
+
         count = 1
         for i in range(1, Sapper.ROW + 1):
             for j in range(1, Sapper.COLUMN + 1):
                 # Determining the minefield area.
                 button = self.buttons[i][j]
                 button.number = count
-                button.grid(row=i, column=j)
+                button.grid(row=i, column=j, stick="WESN")
                 count += 1
+
+        for i in range(1, Sapper.ROW + 1):
+            tk.Grid.rowconfigure(self.WINDOW, i, weight=1)
+
+        for i in range(1, Sapper.COLUMN + 1):
+            tk.Grid.columnconfigure(self.WINDOW, i, weight=1)
 
     def open_all_buttons(self):
         """
