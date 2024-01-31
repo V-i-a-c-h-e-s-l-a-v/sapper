@@ -47,7 +47,8 @@ class MyButton(tk.Button):
         self.y = y
         self.number = number
         self.is_mine = False
-        self.mine_cnt = 0
+        self.mine_cnt = 0  # The numbers of mines.
+        self.is_open = False
 
     def __repr__(self):
         return f"MyButton {self.x} {self.y} {self.number} {self.is_mine}"
@@ -75,8 +76,8 @@ class Sapper:
     """
 
     WINDOW = tk.Tk()
-    ROW: int = 5  # Default value.
-    COLUMN: int = 5  # Default value.
+    ROW: int = 10  # Default value.
+    COLUMN: int = 10  # Default value.
     MINE: int = 5  # Default value.
 
     def __init__(self):
@@ -115,6 +116,7 @@ class Sapper:
             clicked_button.config(
                 text="*", background="red", disabledforeground="black"
             )
+            clicked_button.is_open = True
         else:
             # Assigning the font color of the cell value according to the number of mines.
             color = colors.get(clicked_button.mine_cnt, "black")
@@ -122,12 +124,55 @@ class Sapper:
                 clicked_button.config(
                     text=clicked_button.mine_cnt, disabledforeground=color
                 )
+                clicked_button.is_open = True
             else:
-                # If the number of mines is 0 the cell switches off.
-                clicked_button.config(text="", disabledforeground=color)
+                # The breadth first search method to open all empty cells (mines counter = 0).
+                self.breadth_frst_search(clicked_button)
+                clicked_button.is_open = True
         # After clicking the button provides a new button visualization.
         clicked_button.config(state="disabled")
         clicked_button.config(relief=tk.SUNKEN)
+
+    def breadth_frst_search(self, btn: MyButton):
+        """
+        The breadth first search method to open all empty cells (mines counter = 0).
+        :param btn: The value of mines counter.
+        :return:None
+        """
+        queue = [btn]
+
+        while queue:
+            # The loop checks the value of the nearest cells.
+            cur_btn = (
+                queue.pop()
+            )  # The queue of cells is initialized with empty cell (mines counter = 0).
+            color = colors.get(cur_btn.mine_cnt, "black")
+            if cur_btn.mine_cnt:
+                # If current cell has a mine this cell will be colored with 'color' variable.
+                cur_btn.config(text=cur_btn.mine_cnt, disabledforeground=color)
+            else:
+                # If not current cell has a mine this cell will be colored with black color.
+                cur_btn.config(text="", disabledforeground=color)
+                cur_btn.is_open = True
+            # After clicking the button provides a new button visualization.
+            cur_btn.config(state="disabled")
+            cur_btn.config(relief=tk.SUNKEN)
+
+            if cur_btn.mine_cnt == 0:
+                # To get the values of all the nearest cells.
+                x, y = cur_btn.x, cur_btn.y
+                for dx in [-1, 0, 1]:
+                    for dy in [-1, 0, 1]:
+                        if not abs(dx - dy) == 1:
+                            continue
+                        next_btn = self.buttons[x + dx][y + dy]
+                        if (
+                            not next_btn.is_open
+                            and 1 <= next_btn.x <= Sapper.ROW
+                            and 1 <= next_btn.y <= Sapper.COLUMN
+                            and next_btn not in queue
+                        ):
+                            queue.append(next_btn)
 
     def create_widgets(self):
         """
