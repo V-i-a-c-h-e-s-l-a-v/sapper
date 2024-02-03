@@ -1,6 +1,6 @@
 import random
 import tkinter as tk
-from typing import List, Type
+from typing import List
 from random import shuffle
 from tkinter.messagebox import showinfo
 
@@ -17,7 +17,7 @@ colors = {
 
 class MyButton(tk.Button):
     """
-    Class MyButton describes a cell of the minefield
+    Class MyButton describes a cell of the minefield.
 
     Attributes:
         - master: Tkinter base widget,
@@ -39,7 +39,11 @@ class MyButton(tk.Button):
         :param x: Number of the minefield row
         :param y: Number of the minefield column
         :param number: The cell's number
-        :param args: Additional arguments        :param kwargs: Additional arguments
+        :param args: Additional arguments         :param kwargs:
+        :param is_mine: This flag which indicates whether a mine is in the cell or not. The default value is 'False'.
+        :param mine_cnt: It indicates how many mines are around the cell.
+        :param is_open: This flag indicates that there is no mine is around cell.
+
         """
         super(MyButton, self).__init__(
             master, width=3, font="Calibri 15 bold", *args, **kwargs
@@ -48,7 +52,7 @@ class MyButton(tk.Button):
         self.y = y
         self.number = number
         self.is_mine = False
-        self.mine_cnt = 0  # The numbers of mines.
+        self.mine_cnt = 0
         self.is_open = False
 
     def __repr__(self):
@@ -63,7 +67,10 @@ class Sapper:
         - WINDOW: The instance of the toplevel widget of Tk which represents the main window,
         - ROW: The width of the minefield,
         - COLUMN: The length of the minefield,
-        - MINE: The number of mines.
+        - MINE: The number of mines,
+        - IS_GAME_OVER: It indicates that the current game session is over. The default value is 'False',
+        - IS_FIRST_CLICK: It indicates that no click has been made in the current game session. The default value
+        is 'True'.
 
     Methods:
         - __init__: Creates the instance of class 'Sapper',
